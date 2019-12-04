@@ -21,7 +21,7 @@ router.post("/:id/posts", (req, res) => {
   // do your magic!
 });
 
-router.get("/", (req, res) => {
+router.get("/", validateUserId, (req, res) => {
   const userData = req.body;
   userDb
     .get(userData)
@@ -34,7 +34,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", validateUserId, (req, res) => {
   const id = req.params.id;
   userDb
     .getById(id)
@@ -47,8 +47,29 @@ router.get("/:id", (req, res) => {
     });
 });
 
-router.get("/:id/posts", (req, res) => {
-  // do your magic!
+router.get("/:id/posts", validateUserId, (req, res) => {
+  const id = req.params.id;
+
+  userDb
+    .getById(id)
+    .then(user => {
+      user
+        ? userDb
+            .getUserPosts(id)
+            .then(post => {
+              res.status(200).json(post);
+            })
+            .catch(error => {
+              console.log(error);
+              res.status(500).json({ message: "Could not retrieve posts." });
+            })
+        : res
+            .status(404)
+            .json({ message: "User with the specified ID does not exist." });
+    })
+    .catch(error => {
+      res.status(500).json({ message: "Could not retrieve user." });
+    });
 });
 
 router.delete("/:id", (req, res) => {
