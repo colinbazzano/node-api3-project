@@ -35,7 +35,16 @@ router.get("/", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
-  // do your magic!
+  const id = req.params.id;
+  userDb
+    .getById(id)
+    .then(user => {
+      res.status(200).json(user);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "Error retrieving user" });
+    });
 });
 
 router.get("/:id/posts", (req, res) => {
