@@ -17,8 +17,30 @@ router.post("/", validateUserId, validateUser, (req, res) => {
     });
 });
 
-router.post("/:id/posts", (req, res) => {
-  // do your magic!
+router.post("/:id/posts", validatePost, (req, res) => {
+  const id = req.params.id;
+  const userData = req.body;
+  // const postInfo = { ...req.body, user_id: req.params.id };
+  console.log(userData);
+  userDb
+    .getById(id)
+    .then(user => {
+      user
+        ? postDb
+            .insert(userData)
+            .then(post => {
+              res.status(201).json(post);
+            })
+            .catch(error => {
+              res.status(500).json({ message: "Could not create post." });
+            })
+        : res.status(404).json({
+            message: "The user with the specified ID does not exist. "
+          });
+    })
+    .catch(error => {
+      res.status(500).json({ message: "There was an error saving the post." });
+    });
 });
 
 router.get("/", validateUserId, (req, res) => {
@@ -72,12 +94,42 @@ router.get("/:id/posts", validateUserId, (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
-  // do your magic!
+router.delete("/:id", validateUserId, (req, res) => {
+  const id = req.params.id;
+
+  userDb
+    .remove(id)
+    .then(user => {
+      user > 0
+        ? res
+            .status(200)
+            .json({ message: "The user has been removed, see ya!" })
+        : res.status(404).json({
+            message: "The user with the specified ID does not exist. "
+          });
+    })
+    .catch(error => {
+      res.status(500).json({ message: "The user could not be removed." });
+    });
 });
 
-router.put("/:id", (req, res) => {
-  // do your magic!
+router.put("/:id", validateUserId, (req, res) => {
+  userDb
+    .update(req.params.id, req.body)
+    .then(user => {
+      user
+        ? res.status(200).json({ ...user, ...req.body })
+        : res.status(404).json({ message: "The user could not be found" });
+      // if (user) {
+      //   res.status(200).json(user);
+      // } else {
+      //   res.status(404).json({ message: "The user could not be found." });
+      // }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "Error updating the user. " });
+    });
 });
 
 //custom middleware
