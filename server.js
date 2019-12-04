@@ -9,8 +9,11 @@ server.get("/", (req, res) => {
 //custom middleware
 
 function logger(req, res, next) {
-  console.log(`${req.method} to ${req.originalUrl}`);
+  console.log(`${req.method} to ${req.originalUrl} at ${Date.now()}`);
   next();
 }
+
+server.use(express.json());
+server.use(logger);
 
 module.exports = server;
