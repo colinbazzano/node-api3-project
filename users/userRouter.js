@@ -57,7 +57,7 @@ router.get("/", validateUserId, (req, res) => {
 });
 
 router.get("/:id", validateUserId, (req, res) => {
-  const id = req.params.id;
+  const id = req.user.id;
   userDb
     .getById(id)
     .then(user => {
@@ -134,16 +134,32 @@ router.put("/:id", validateUserId, (req, res) => {
 
 //custom middleware
 
+// how I did it before = req.user.id DID NOT work.
+// function validateUserId(req, res, next) {
+//   const id = req.params.id;
+
+//   const user = userDb.getById(id);
+//   if (user) {
+//     req.user = user;
+//     next();
+//   } else {
+//     res.status(400).json({ message: "invalid user id" });
+//   }
+// }
+// seemingly correct way:
 function validateUserId(req, res, next) {
   const id = req.params.id;
-
-  const user = userDb.getById(id);
-  if (user) {
-    req.user = user;
-    next();
-  } else {
-    res.status(400).json({ message: "invalid user id" });
-  }
+  userDb
+    .getById(id)
+    .then(user => {
+      user
+        ? (req.user = user)
+        : res.status(400).json({ message: "invalid user id " });
+      next();
+    })
+    .catch(error => {
+      console.log(error);
+    });
 }
 
 function validateUser(req, res, next) {
